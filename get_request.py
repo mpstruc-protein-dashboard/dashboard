@@ -2,22 +2,16 @@
 # coding: utf-8
 # required library imports
 
-import altair as alt
 import pandas as pd
-import json
 from pandas.tseries.offsets import YearBegin 
 
-## pandas options
-
-pd.options.display.max_columns = 60
-pd.options.display.min_rows = 20
-
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 50)
+pd.set_option('display.expand_frame_repr', False)
+pd.set_option('max_colwidth', 10)
 
 import requests
-import urllib
-from urllib.request import urlopen
 from xml.etree import ElementTree as xml_etree
-from lxml import etree as lxml_etree
 
 
 class Group:
@@ -35,7 +29,7 @@ class Sub:
         self.proteins = []
 
     def add_protein(self, protein):
-        self.proteins.append(protein)
+        self.proteins.append(protein.vars)
 
 
 class Bib:
@@ -53,16 +47,12 @@ class Bib:
         self.page = page
         self.doi = doi
         self.notes = notes
-    
-    @property
-    def json(self):
-        return vars(self)
 
 
 class BaseProtein:
     def __init__(
         self, pdb_code, name, species, tax_domain, ex_species,
-        res, des, bib, second_bib, related_pdb_ent, *args
+        res, des, bib, second_bib, related_pdb_ent
     ):
         self.pdb_code = pdb_code
         self.name = name
@@ -73,16 +63,30 @@ class BaseProtein:
         self.des = des
         self.related_pdb_ent = related_pdb_ent
 
-        if bib.__class__.__name__ == "Element":
-            self.bib = Bib(*[item.text for item in list(bib)])
-        else:
-            self.bib = None
-        
-        if second_bib.__class__.__name__ == "ELement":
-            self.second_bib = Bib(*[item.text for item in list(second_bib)])
-        else:
-            self.second_bib = None
+        self.med_id = None
+        self.authors = None
+        self.year = None
+        self.title = None
+        self.journal = None
+        self.volume = None
+        self.issue = None
+        self.page = None
+        self.doi = None
+        self.notes = None
 
+        if bib.__class__.__name__ == "Element":
+            bib = Bib(*[item.text for item in list(bib)])
+            self.med_id = bib.med_id
+            self.authors = bib.authors
+            self.year = bib.year
+            self.title = bib.title
+            self.journal = bib.journal
+            self.volume = bib.volume
+            self.issue = bib.issue
+            self.page = bib.page
+            self.doi = bib.doi
+            self.notes = bib.notes
+        
 
 class MemberProtein(BaseProtein):
     def __init__(
@@ -95,10 +99,6 @@ class MemberProtein(BaseProtein):
         )
 
         self.master_pdb_code = master_pdb_code
-    
-    @property
-    def json(self):
-        return vars(self)
 
 
 class MasterProtein(BaseProtein):
@@ -117,34 +117,54 @@ class MasterProtein(BaseProtein):
     def process_members(self, members):
         if members:
             for m in members:
-                member = MemberProtein(*[item.text if not len(item) else item for item in list(m)])
+                member = MemberProtein(*[ item.text if not len(item) else item
+                                          for item in list(m)])
                 self.members.append(member)
         else:
             self.members = None
 
+    @property
+    def vars(self):
+        return vars(self)
 
-def get_request():
-    url = "https://blanco.biomol.uci.edu/mpstruc/listAll/mpstrucTblXml" ## weekly + diff()-Bash 
-    response = requests.get(url)
-    
-    groups = list(xml_etree.fromstring(response.content))[1] # xml_tree's children attributes: [0]caption [1]groups
-    group_arr = []
 
-    for g in groups.findall('.//group'):
-        group = Group(name = list(g)[0].text)
-        sub_groups = list(g)[2]
-        for sub in list(sub_groups):
-            name = sub[0].text
-            proteins = list(sub[1])
+class Database:
+    def __init__(self):
+        super().__init__()
+        self.monotopic = self.get_groups()[0]
+        self.b_barrel = self.get_groups()[1]
+        self.a_helical = self.get_groups()[2]
 
-            sub = Sub(name)
-            for p in proteins:
-                protein = MasterProtein(*[item.text if not len(list(item)) else item for item in list(p)])
-                sub.add_protein(protein)
+    def get_groups(self):
+        url = "https://blanco.biomol.uci.edu/mpstruc/listAll/mpstrucTblXml" ## weekly + diff()-Bash 
+        response = requests.get(url)
+        
+        groups = list(xml_etree.fromstring(response.content))[1] # xml_tree's children attributes: [0]caption [1]groups
+        group_arr = []
 
-            group.add_sub(sub)
-        group_arr.append(group)
-    
-    return group_arr
+        for g in groups.findall('.//group'):
+            group = Group(name = list(g)[0].text)
+            sub_groups = list(g)[2]
+            for sub in list(sub_groups):
+                name = sub[0].text
+                proteins = list(sub[1])
 
-get_request()
+                sub = Sub(name)
+                for p in proteins:
+                    protein = MasterProtein(*[ item.text if not len(list(item))
+                                            else item for item in list(p) ])
+                    sub.add_protein(protein)
+
+                group.add_sub(sub)
+            group_arr.append(group)
+        
+        return group_arr
+
+
+def get_dataframe():
+    db = Database()
+    for sub in db.monotopic.subs:
+        print(pd.DataFrame.from_dict(data=sub.proteins))
+
+
+get_dataframe()
