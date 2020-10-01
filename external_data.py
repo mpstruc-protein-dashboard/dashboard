@@ -1,75 +1,26 @@
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup as bs
+    
+
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+
 def get_external_data_overview():
+    url = 'https://www.rcsb.org/pdb/results/reportField.do'
+    table = bs(requests.get(url).content, 'html.parser').table
+    rows = table.find_all('tr')
+    text_arr = [[cell.text for cell in row.findChildren(recursive=False)] for row in rows]
+    text_df = pd.DataFrame(text_arr[1:], columns=text_arr[0])
+    for index, row in text_df.iterrows():
+        if row['Report Name'] == '\xa0':
+            row['Report Name'] = text_df.iloc[index-1]['Report Name']
 
-    import lxml.html as lh
-    import requests
-    import pandas as pd
+    return text_df
 
-    query_columns = requests.get('https://www.rcsb.org/pdb/results/reportField.do')
-    query_columns = lh.fromstring(query_columns.content)
-    query_columns = query_columns.xpath('//tr')
 
-    #Create empty list
-    col=[]
-    i=0
-    #For each row, store each first element (header) and an empty list
-    for t in query_columns[0]:
-        i+=1
-        name=t.text_content()
-        print('%d:"%s"'%(i,name))
-        col.append((name,[]))
-
-    #Since out first row is the header, data is stored on the second row onwards
-    for j in range(1,len(query_columns)):
-        #T is our j'th row
-        T = query_columns[j]
-        
-        #If row is not of size 10, the //tr data is not from our table 
-        if len(T)!=3:
-            break
-        
-        #i is the index of our column
-        i=0
-        
-        #Iterate through each element of the row
-        for t in T.iterchildren():
-            data=t.text_content() 
-            #Check if row is empty
-            if i>0:
-            #Convert any numerical value to integers
-                try:
-                    data=str(data)
-                except:
-                    pass
-            #Append the data to the empty list of the i'th column
-            col[i][1].append(data)
-            #Increment i for the next column
-            i+=1
-
-    query_columns_dict = {title:column for (title,column) in col}
-    query_columns_df = pd.DataFrame(query_columns_dict)
-
-    ## Table from https://www.rcsb.org/pdb/results/reportField.do as a pandas DataFrame with Srings as Fields.
-    query_columns_df = query_columns_df.convert_dtypes()
-
-    ## There are several reports within the possible columns that can be queried to enrich the data. This step makes sure
-    ## that these reports can be accessed properly.
-
-    for i in range(0,query_columns_df.shape[0]):
-        if query_columns_df['Report Name'].iloc[i] == '\xa0':
-            query_columns_df['Report Name'].iloc[i] = query_columns_df['Report Name'].iloc[i-1]
-
-    query_columns_df['Report Name'] = query_columns_df['Report Name'].astype('category')
-
-    query_columns_df.rename(columns= {'Report Name': 'Report_Name','Field Name': 'Field_Name', 'PDBx/mmCIF Item Name': 'Item_Name'}, inplace = True)
-    
-    return query_columns_df
-
-def get_enrichtment(reports = [], fields = []):
-    
-    from pandas.core.common import flatten
-    from io import StringIO
-    import urllib
-    
+def get_enrichtment(protein_db, reports = [], fields = []):    
     '''
     Given a Table (@query_columns_df) this function will query
     the pdb for fields and reports which are specified by the
@@ -148,8 +99,10 @@ def get_enrichtment(reports = [], fields = []):
 
     # Build the URL for the REST-API. This holds a strange behaviour with ;&amp and &. Somehow the & does not get converted and causes some error if not
     # handled with urllib.parse.urlparse.
-    getURL = 'http://www.pdb.org/pdb/rest/customReport?pdbids={0}'             '&customReportColumns={1}'             '&service=wsfile&format=csv'.format(unique_pdbCodes_in_mptopo,
-                                                 query_columns)
+    getURL = 'http://www.pdb.org/pdb/rest/customReport?pdbids={0} \
+              &customReportColumns={1}&service=wsfile&format=csv' \
+              .format(unique_pdbCodes_in_mptopo, query_columns)
+
     getURL = urllib.parse.urlparse(getURL)
     # the URL is beeing requested and returns a text (StringIO) which now easily can be understood by pandas and be written to a data frame. 
     string_from_url = requests.get(getURL.geturl()).text
@@ -163,5 +116,7 @@ def merge_with_mpstruct(mpstruct_data, enrichment):
 
 
 
-# if __name__ == "__main__":
-#     get_external_data_overview()
+if __name__ == "__main__":
+    a = get_external_data_overview()
+    # b = get_enrichtment([0],[])
+    # print(b)
