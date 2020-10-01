@@ -1,7 +1,8 @@
 ## In this file the deployment of the dashboard should take place.
 # import all_the_files
 
-import get_request
+from retrieve_data import Database, get_dataframe
 
 if __name__ == "__main__":
-    get_request()
+    db = Database()
+    get_dataframe(db)                                                                                         

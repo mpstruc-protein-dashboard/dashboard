@@ -2,16 +2,14 @@
 # coding: utf-8
 # required library imports
 
+import requests
 import pandas as pd
-from pandas.tseries.offsets import YearBegin 
+from xml.etree import ElementTree as xml_etree
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 50)
 pd.set_option('display.expand_frame_repr', False)
 pd.set_option('max_colwidth', 10)
-
-import requests
-from xml.etree import ElementTree as xml_etree
 
 
 class Group:
@@ -24,7 +22,8 @@ class Group:
 
 
 class Sub:
-    def __init__(self, name):
+    def __init__(self, group_name, name):
+        self.group_name = group_name
         self.name = name
         self.proteins = []
 
@@ -49,11 +48,13 @@ class Bib:
         self.notes = notes
 
 
-class BaseProtein:
+class MasterProtein:
     def __init__(
-        self, pdb_code, name, species, tax_domain, ex_species,
-        res, des, bib, second_bib, related_pdb_ent
+        self, group_name, sub_name, pdb_code, name, species, tax_domain, ex_species,
+        res, des, bib, second_bib, related_pdb_ent, *args
     ):
+        self.group_name = group_name
+        self.sub_name = sub_name
         self.pdb_code = pdb_code
         self.name = name
         self.species = species
@@ -61,6 +62,7 @@ class BaseProtein:
         self.ex_species = ex_species
         self.res = res
         self.des = des
+        self.second_bib = second_bib
         self.related_pdb_ent = related_pdb_ent
 
         self.med_id = None
@@ -86,42 +88,6 @@ class BaseProtein:
             self.page = bib.page
             self.doi = bib.doi
             self.notes = bib.notes
-        
-
-class MemberProtein(BaseProtein):
-    def __init__(
-        self, pdb_code, name, species, tax_domain, ex_species,
-        res, des, bib, second_bib, related_pdb_ent, master_pdb_code
-    ):
-        super().__init__(
-            pdb_code, name, species, tax_domain,
-            ex_species, res, des, bib, second_bib, related_pdb_ent
-        )
-
-        self.master_pdb_code = master_pdb_code
-
-
-class MasterProtein(BaseProtein):
-    def __init__(
-        self, pdb_code, name, species, tax_domain, ex_species,
-        res, des, bib, second_bib, related_pdb_ent, members
-    ):
-        super().__init__(
-            pdb_code, name, species, tax_domain,
-            ex_species, res, des, bib, second_bib, related_pdb_ent
-        )
-
-        self.members = []
-        self.process_members(members)
-
-    def process_members(self, members):
-        if members:
-            for m in members:
-                member = MemberProtein(*[ item.text if not len(item) else item
-                                          for item in list(m)])
-                self.members.append(member)
-        else:
-            self.members = None
 
     @property
     def vars(self):
@@ -131,9 +97,10 @@ class MasterProtein(BaseProtein):
 class Database:
     def __init__(self):
         super().__init__()
-        self.monotopic = self.get_groups()[0]
-        self.b_barrel = self.get_groups()[1]
-        self.a_helical = self.get_groups()[2]
+        group_arr = self.get_groups()
+        self.monotopic = group_arr[0]
+        self.b_barrel = group_arr[1]
+        self.a_helical = group_arr[2]
 
     def get_groups(self):
         url = "https://blanco.biomol.uci.edu/mpstruc/listAll/mpstrucTblXml" ## weekly + diff()-Bash 
@@ -146,13 +113,17 @@ class Database:
             group = Group(name = list(g)[0].text)
             sub_groups = list(g)[2]
             for sub in list(sub_groups):
-                name = sub[0].text
+                sub_name = sub[0].text
                 proteins = list(sub[1])
 
-                sub = Sub(name)
+                sub = Sub(group.name, sub_name)
                 for p in proteins:
-                    protein = MasterProtein(*[ item.text if not len(list(item))
-                                            else item for item in list(p) ])
+                    attrs = [ item.text if not len(list(item)) else item
+                              for item in list(p) ]
+
+                    attrs.insert(0, sub_name)
+                    attrs.insert(0, group.name)
+                    protein = MasterProtein(*attrs)
                     sub.add_protein(protein)
 
                 group.add_sub(sub)
@@ -161,14 +132,11 @@ class Database:
         return group_arr
 
 
-def get_dataframe():
-    db = Database()
+def get_dataframe(db:Database):
     protein_collection = []
-    for sub in db.monotopic.subs:
-        protein_collection.append(pd.DataFrame.from_dict(data=sub.proteins))
-    print("done")
+    for group in [db.monotopic, db.a_helical, db.b_barrel]:
+        for sub in group.subs:
+            protein_collection.append(pd.DataFrame.from_dict(data=sub.proteins))
+    
     protein_collection = pd.concat(protein_collection, ignore_index= True)
     print(protein_collection)
-
-get_dataframe()
-
