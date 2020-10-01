@@ -163,8 +163,12 @@ class Database:
 
 def get_dataframe():
     db = Database()
+    protein_collection = []
     for sub in db.monotopic.subs:
-        print(pd.DataFrame.from_dict(data=sub.proteins))
-
+        protein_collection.append(pd.DataFrame.from_dict(data=sub.proteins))
+    print("done")
+    protein_collection = pd.concat(protein_collection, ignore_index= True)
+    print(protein_collection)
 
 get_dataframe()
+
