@@ -20,10 +20,11 @@ def get_external_data_overview():
         if row['report_name'] == '\xa0':
             row['report_name'] = query_columns_df.iloc[index-1]['report_name']
 
+    query_columns_df.to_pickle("./Database/External/query_columns_df.pkl")
     return query_columns_df
 
 
-def get_enrichment(protein_db, reports = [], fields = []):    
+def get_enrichment(protein_db, query_columns_df, reports = [], fields = []):    
     '''
     Given a Table (@query_columns_df) this function will query
     the pdb for fields and reports which are specified by the
@@ -32,8 +33,6 @@ def get_enrichment(protein_db, reports = [], fields = []):
     specify which reports or fields they want to see. 
     '''
     #TODO: ERROR HANDLING: IF REPORTS OR FIELDS ISNT A LIST THINGS WILL PROBABLY BREAK ###
-
-    query_columns_df = get_external_data_overview()
     query_columns_reports = []
     query_columns_fields = []
     
@@ -121,3 +120,15 @@ def get_enrichment(protein_db, reports = [], fields = []):
 ## Function takes in the "original Data" and merges is on the pdbCode with the data from the pdb database.
 def merge_with_mpstruct(protein_db, enrichment):
     return(protein_db.merge(enrichment, left_on='pdb_code', right_on= 'structureId', how = 'left'))
+
+
+# the third thing is making the external data persistent locally ..
+# persist the external data locally.
+
+def persist_external_data(protein_db, query_columns_df):
+    for field in range(0,len(query_columns_df.field_name.unique())):
+        res = get_enrichment(protein_db, query_columns_df, None, [field])
+        if res.columns[0] == 'structureId':
+            res.to_pickle(("./Database/External/{0}.pkl").format(query_columns_df.field_name.unique()[field]))
+
+# but in the project folder there needs to be the folder structure for this to work so you probably have to make 2 new folders in the project root, database and external.

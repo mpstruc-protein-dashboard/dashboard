@@ -1,3 +1,4 @@
+import re
 import requests
 import pandas as pd
 from xml.etree import ElementTree as xml_etree
@@ -137,14 +138,64 @@ def get_dataframe(db:Database):
     return protein_df
 
 
-def convert_type(db):
-    db['NMR'] = db['res'].str.contains('NMR')
-    db = db.convert_dtypes()
-    db['res'] = pd.to_numeric(db['res'], errors='coerce')
-    db['group_name'] = db['group_name'].astype('category')
-    db['sub_name'] = db['sub_name'].astype('category')
-    db['tax_domain'] = db['tax_domain'].astype('category')
-    db['species'] = db['species'].astype('category')
-    db['ex_species'] = db['ex_species'].astype('category')
-    db['year'] = db['year'].astype('category')
+def polish_db(db):
+    def convert_type(db):
+        db['NMR'] = db['res'].str.contains('NMR')
+        db = db.convert_dtypes()
+        db['res'] = pd.to_numeric(db['res'], errors='coerce')
+        db['group_name'] = db['group_name'].astype('category')
+        db['sub_name'] = db['sub_name'].astype('category')
+        db['tax_domain'] = db['tax_domain'].astype('category')
+        db['species'] = db['species'].astype('category')
+        db['ex_species'] = db['ex_species'].astype('category')
+        db['year'] = db['year'].astype('category')
+
+    # Find the number of pages.
+    # The amount of research on the protein might correlate with the resolution (?).
+    # This hypothesis is based on the hypothesis that more pages mean longer or more research.
+
+    # def count_pages(db):
+    #     def char_to_str(no_list):
+    #         st_of_number = ''
+    #         for number in no_list:
+    #             st_of_number += number
+    #         return st_of_number
+
+    #     page_dict = {}
+    #     for i in range(0, db.shape[0]):
+    #         if db.page[i]:
+    #             pages = re.split('-',db.page[i])
+    #             if len(pages)==2:
+    #                 page_dict[i] = {'page_count': int(char_to_str(re.findall('[0-9]',pages[1])))-int(char_to_str(re.findall('[0-9]',pages[0])))}
+    #             else:
+    #                 page_dict[i] = {'page_count': 1}
+    #     return page_dict
+
+    # db = convert_type(db)
+    # pdict = count_pages(db)
+    # db['page_count'] = pd.DataFrame.from_dict(pdict, orient = 'index')
     return db
+
+
+
+
+# def data_update(new_timestamp):
+#     timestamp_file = open("./Database/timestamp/old_timestamp.txt","r")
+#     timestamp_old = timestamp_file.readlines()
+#     timestamp_file.close()
+#     if timestamp_old == [new_timestamp]:
+#         ##do the update ... get all the data and rebuild all the enrichtment databases
+#     else:
+#         ##do nothing, just get the old database
+
+
+
+# def get_timestamp():
+#     import xml.etree.ElementTree as etree
+#     import xmltodict
+#     url = "https://blanco.biomol.uci.edu/mpstruc/listAll/mpstrucTblXml" ## weekly + diff()-Bash 
+#     response = requests.get(url)
+#     od = xmltodict.parse(etree.tostring(xml_etree.fromstring(response.content)),process_namespaces=True)
+#     od2 = od.popitem()
+#     timestamp = od2[1]['@timeStamp']
+#     return timestamp
