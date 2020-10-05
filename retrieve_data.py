@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-# required library imports
-
+import re
 import requests
 import pandas as pd
 from xml.etree import ElementTree as xml_etree
@@ -10,7 +7,6 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 50)
 pd.set_option('display.expand_frame_repr', False)
 pd.set_option('max_colwidth', 10)
-
 
 class Group:
     def __init__(self, name):
@@ -65,17 +61,6 @@ class MasterProtein:
         self.second_bib = second_bib
         self.related_pdb_ent = related_pdb_ent
 
-        self.med_id = None
-        self.authors = None
-        self.year = None
-        self.title = None
-        self.journal = None
-        self.volume = None
-        self.issue = None
-        self.page = None
-        self.doi = None
-        self.notes = None
-
         if bib.__class__.__name__ == "Element":
             bib = Bib(*[item.text for item in list(bib)])
             self.med_id = bib.med_id
@@ -88,6 +73,17 @@ class MasterProtein:
             self.page = bib.page
             self.doi = bib.doi
             self.notes = bib.notes
+        else:
+            self.med_id = None
+            self.authors = None
+            self.year = None
+            self.title = None
+            self.journal = None
+            self.volume = None
+            self.issue = None
+            self.page = None
+            self.doi = None
+            self.notes = None
 
     @property
     def vars(self):
@@ -103,7 +99,7 @@ class Database:
         self.a_helical = group_arr[2]
 
     def get_groups(self):
-        url = "https://blanco.biomol.uci.edu/mpstruc/listAll/mpstrucTblXml" ## weekly + diff()-Bash 
+        url = "https://blanco.biomol.uci.edu/mpstruc/listAll/mpstrucTblXml"
         response = requests.get(url)
         
         groups = list(xml_etree.fromstring(response.content))[1] # xml_tree's children attributes: [0]caption [1]groups
@@ -133,10 +129,73 @@ class Database:
 
 
 def get_dataframe(db:Database):
-    protein_collection = []
+    protein_df = []
     for group in [db.monotopic, db.a_helical, db.b_barrel]:
         for sub in group.subs:
-            protein_collection.append(pd.DataFrame.from_dict(data=sub.proteins))
+            protein_df.append(pd.DataFrame.from_dict(data=sub.proteins))
     
-    protein_collection = pd.concat(protein_collection, ignore_index= True)
-    print(protein_collection)
+    protein_df = pd.concat(protein_df, ignore_index= True)
+    return protein_df
+
+
+def polish_db(db):
+    def convert_type(db):
+        db['NMR'] = db['res'].str.contains('NMR')
+        db = db.convert_dtypes()
+        db['res'] = pd.to_numeric(db['res'], errors='coerce')
+        db['group_name'] = db['group_name'].astype('category')
+        db['sub_name'] = db['sub_name'].astype('category')
+        db['tax_domain'] = db['tax_domain'].astype('category')
+        db['species'] = db['species'].astype('category')
+        db['ex_species'] = db['ex_species'].astype('category')
+        db['year'] = db['year'].astype('category')
+
+    # Find the number of pages.
+    # The amount of research on the protein might correlate with the resolution (?).
+    # This hypothesis is based on the hypothesis that more pages mean longer or more research.
+
+    # def count_pages(db):
+    #     def char_to_str(no_list):
+    #         st_of_number = ''
+    #         for number in no_list:
+    #             st_of_number += number
+    #         return st_of_number
+
+    #     page_dict = {}
+    #     for i in range(0, db.shape[0]):
+    #         if db.page[i]:
+    #             pages = re.split('-',db.page[i])
+    #             if len(pages)==2:
+    #                 page_dict[i] = {'page_count': int(char_to_str(re.findall('[0-9]',pages[1])))-int(char_to_str(re.findall('[0-9]',pages[0])))}
+    #             else:
+    #                 page_dict[i] = {'page_count': 1}
+    #     return page_dict
+
+    # db = convert_type(db)
+    # pdict = count_pages(db)
+    # db['page_count'] = pd.DataFrame.from_dict(pdict, orient = 'index')
+    return db
+
+
+
+
+# def data_update(new_timestamp):
+#     timestamp_file = open("./Database/timestamp/old_timestamp.txt","r")
+#     timestamp_old = timestamp_file.readlines()
+#     timestamp_file.close()
+#     if timestamp_old == [new_timestamp]:
+#         ##do the update ... get all the data and rebuild all the enrichtment databases
+#     else:
+#         ##do nothing, just get the old database
+
+
+
+# def get_timestamp():
+#     import xml.etree.ElementTree as etree
+#     import xmltodict
+#     url = "https://blanco.biomol.uci.edu/mpstruc/listAll/mpstrucTblXml" ## weekly + diff()-Bash 
+#     response = requests.get(url)
+#     od = xmltodict.parse(etree.tostring(xml_etree.fromstring(response.content)),process_namespaces=True)
+#     od2 = od.popitem()
+#     timestamp = od2[1]['@timeStamp']
+#     return timestamp
