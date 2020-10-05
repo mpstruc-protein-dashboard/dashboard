@@ -115,12 +115,10 @@ def get_enrichment(protein_db, query_columns_df, reports = [], fields = []):
     string_from_url = requests.get(getURL.geturl()).text
 
     enrichment = pd.read_csv(StringIO(string_from_url))
+    enrichment.rename(columns={'structureId': 'pdb_code'}, inplace=True)
     return enrichment
 
 ## Function takes in the "original Data" and merges is on the pdbCode with the data from the pdb database.
-
-def merge_with_mpstruct(protein_db, enrichment):
-    return(protein_db.merge(enrichment, left_on='pdb_code', right_on= 'structureId', how = 'left'))
 
 # the third thing is making the external data persistent locally ..
 # persist the external data locally.
@@ -128,7 +126,7 @@ def merge_with_mpstruct(protein_db, enrichment):
 def persist_external_data(protein_db, query_columns_df):
     for field in range(0,len(query_columns_df.field_name.unique())):
         res = get_enrichment(protein_db, query_columns_df, None, [field])
-        if res.columns[0] == 'structureId':
+        if res.columns[0] == 'pdb_code':
             res.to_pickle(("./Database/External/{0}.pkl").format(query_columns_df.field_name.unique()[field]))
 
 
