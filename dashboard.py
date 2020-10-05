@@ -1,8 +1,8 @@
-
-#import dashboard_texts
+import altair as alt
 import panel as pn
-#import descriptive_statistics
+import retrieve_data
 
-
-
-pn.Row('dash_texts.mpstruc_description_text()').show(threaded=True)
+db = retrieve_data.Database()
+protein_data = retrieve_data.get_dataframe(db)
+protein_data = retrieve_data.polish_db(protein_data)
+print(protein_data)

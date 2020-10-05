@@ -149,31 +149,32 @@ def polish_db(db):
         db['species'] = db['species'].astype('category')
         db['ex_species'] = db['ex_species'].astype('category')
         db['year'] = db['year'].astype('category')
-
+        return db
     # Find the number of pages.
     # The amount of research on the protein might correlate with the resolution (?).
     # This hypothesis is based on the hypothesis that more pages mean longer or more research.
 
-    # def count_pages(db):
-    #     def char_to_str(no_list):
-    #         st_of_number = ''
-    #         for number in no_list:
-    #             st_of_number += number
-    #         return st_of_number
+    def count_pages(db):
+        def char_to_str(no_list):
+            st_of_number = ''
+            for number in no_list:
+                st_of_number += number
+            return st_of_number
 
-    #     page_dict = {}
-    #     for i in range(0, db.shape[0]):
-    #         if db.page[i]:
-    #             pages = re.split('-',db.page[i])
-    #             if len(pages)==2:
-    #                 page_dict[i] = {'page_count': int(char_to_str(re.findall('[0-9]',pages[1])))-int(char_to_str(re.findall('[0-9]',pages[0])))}
-    #             else:
-    #                 page_dict[i] = {'page_count': 1}
-    #     return page_dict
+        page_dict = {}
+        for i in range(0, db.shape[0]):
+            if not pd.isnull(db.page[i]):
+                pages = re.split('-',db.page[i])
+                if len(pages)==2:
+                    page_dict[i] = {'page_count': int(char_to_str(re.findall('[0-9]',pages[1])))-int(char_to_str(re.findall('[0-9]',pages[0])))}
+                else:
+                    page_dict[i] = {'page_count': 1}
+        return page_dict
 
-    # db = convert_type(db)
-    # pdict = count_pages(db)
-    # db['page_count'] = pd.DataFrame.from_dict(pdict, orient = 'index')
+    db = convert_type(db) ## returns the db with converted datatypes.
+    pdict = count_pages(db) ## returns page-count column.
+    ## adds page-count column. 
+    db['page_count'] = pd.DataFrame.from_dict(pdict, orient = 'index')
     return db
 
 

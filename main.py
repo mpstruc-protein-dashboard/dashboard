@@ -2,7 +2,10 @@
 # import all_the_files
 
 from retrieve_data import Database, get_dataframe
+from external_data import get_external_data_overview, persist_external_data
 
 if __name__ == "__main__":
     db = Database()
-    get_dataframe(db)                                                                                         
+    get_dataframe(db)                 
+
+    # persist_external_data(protein_db = get_dataframe(db), query_columns_df= get_external_data_overview())                                                       
