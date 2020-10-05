@@ -15,7 +15,7 @@ def get_external_data_overview():
     for t in query_columns[0]:
         i+=1
         name=t.text_content()
-        print('%d:"%s"'%(i,name))
+        # print('%d:"%s"'%(i,name))
         col.append((name,[]))
 
     #Since out first row is the header, data is stored on the second row onwards
@@ -159,9 +159,10 @@ def get_enrichtment(reports = [], fields = []):
 
 ## Function takes in the "original Data" and merges is on the pdbCode with the data from the pdb database.
 def merge_with_mpstruct(mpstruct_data, enrichment):
-    return(mpstruct_data.merge(enrichment, left_on='pdbCode', right_on= 'structureId', how = 'left'))
+    return(mpstruct_data.merge(enrichment, left_on='pdb_code', right_on= 'structureId', how = 'left'))
 
 
 
-# if __name__ == "__main__":
-#     get_external_data_overview()
+if __name__ == "__main__":
+    a = get_external_data_overview()
+    print(a)

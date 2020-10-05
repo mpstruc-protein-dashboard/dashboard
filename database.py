@@ -10,7 +10,7 @@ class database():
 
     ### define variables describing the tabular data (descriptive stats) ###
     def no_of_entries(self) -> int:
-    return self.tabular_data.shape[0]
+        return self.tabular_data.shape[0]
 
     def name_of_features(self) -> list:
         return list(self.tabular_data.columns)
@@ -35,14 +35,14 @@ class database():
 
     
     
-    no_of_monotopic_proteins = protein_db[protein_db['db_type'] == 'MONOTOPIC MEMBRANE PROTEINS'].shape[0]
-    mono_prot_ratio = round((no_of_monotopic_proteins / no_of_entries) * 100,2)
+    # no_of_monotopic_proteins = protein_db[protein_db['db_type'] == 'MONOTOPIC MEMBRANE PROTEINS'].shape[0]
+    # mono_prot_ratio = round((no_of_monotopic_proteins / no_of_entries) * 100,2)
 
-    no_of_alpha_proteins = protein_db[protein_db['db_type'] == 'TRANSMEMBRANE PROTEINS: ALPHA-HELICAL'].shape[0]
-    alpha_prot_ratio = round((no_of_alpha_proteins / no_of_entries) * 100,2)
+    # no_of_alpha_proteins = protein_db[protein_db['db_type'] == 'TRANSMEMBRANE PROTEINS: ALPHA-HELICAL'].shape[0]
+    # alpha_prot_ratio = round((no_of_alpha_proteins / no_of_entries) * 100,2)
 
-    no_of_beta_proteins = protein_db[protein_db['db_type'] == 'TRANSMEMBRANE PROTEINS: BETA-BARREL'].shape[0]
-    beta_prot_ratio = 
+    # no_of_beta_proteins = protein_db[protein_db['db_type'] == 'TRANSMEMBRANE PROTEINS: BETA-BARREL'].shape[0]
+    # beta_prot_ratio = 
 
     def no_of_proteins_per_cat(self, cat):
         print("neuer Name - check mit Quang.")
@@ -52,3 +52,4 @@ class database():
         print("neuer Name - check mit Quang.")
         return round((no_of_proteins_per_cat(self,cat) / self.no_of_entries()) * 100,2)
 
+database()

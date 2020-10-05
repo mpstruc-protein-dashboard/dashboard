@@ -1,13 +1,8 @@
 
+#import dashboard_texts
 import panel as pn
-import numpy as np
-import param
-
-## stichtching together the actual dashboard
-
-
-if __name__ == "__main__":
-    
+#import descriptive_statistics
 
 
 
+pn.Row('dash_texts.mpstruc_description_text()').show(threaded=True)

@@ -1,0 +1,30 @@
+## The Data should have: 
+
+Total Structual Weight
+Atom Count
+Residue Count
+Number of Unique Protein Chains
+Number of Transmembrane Protein Structures
+
+
+
+## layouting : 
+
+https://tessellationtech.io/dashboard-design-essentials-dashboard-layout-and-formatting/
+
+
+questions to answer:
+
+1. distribution of vector/bacterial hosts used for obtaining the 
+structures. are there any "dominating" hosts ? what are the numbers.
+
+2. are there more successful bacterial hosts than others? 
+(i dont understand how to measure the success of a host)
+
+3. what species uses what bacterial host the best to find MP?
+
+4. who worked on what ? Authors -> laboratorys?
+
+Questions: 
+
+what is a bacterial host 
