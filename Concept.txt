@@ -2,7 +2,8 @@
 
 Total Structual Weight
 Atom Count
-Residue Count
+Residue Count - Residues sind überhaenge, die eigentlich meistens keine funktion haben oder nur funktion die den transport oder die interaktion
+                mit der umgebung beeinflussen.
 Number of Unique Protein Chains
 Number of Transmembrane Protein Structures
 
@@ -28,3 +29,36 @@ structures. are there any "dominating" hosts ? what are the numbers.
 Questions: 
 
 what is a bacterial host 
+
+
+
+interesting ideas, notes:
+
+taxonomy = species of the protein.
+- experimental technique ..= art und weise wie das protein auseinander gefriemelt wurde. --> Rückschluss über Resolution.
+- Welche experimentelle Art erzeugt die höchste Resolution, welche Experimentart wird über die Zeit am meisten verwendet.
+- richtig viele aber dafür undeutlich..
+- species » resolution .. 
+
+
+
+ligandMolecularWeight im verhältnis zur länge.. structureMolecularWeight gemessen in kilo dalton (masse einheit..)
+    structureMolecularWeight = gewicht des eigentlichen Transmembran Proteins (wahrscheinlich)
+    vergleich atomare anzahl gewicht:
+        - grosse proteine deswgen schwer
+        - viele saeuren deswegen schwer
+        - schwere atome deswegen schwer
+
+ranking der paper aufstellen. nature is oben, dann cell, science, lolo papers. ~ resolution
+
+
+prokarioten und eukarioten trennen. immer, erstes aufspalten. 3 grosse koenigreiche.
+
+1. What should be viz.
+2. What metrics
+3. what should be interactive. 
+
+## 3 Merge Types ## 
+## Things with Chain ID have 5000 Entries, Things that regard ligands have 9k Entries. Otherwise usually there are about 1k entries.
+        
+

@@ -8,44 +8,38 @@ from retrieve_data import (
 
 
 class MasterDatabase:
-    def __init__(self, tabular_data):
+    def __init__(self):
         # self.data = external_data # external data
-        self.tabular_data =  tabular_data # get tabular data from xml file.
+        # get tabular data from xml file.
+        self.tabular_data = pd.read_pickle("./Database/mpstruc_pandas.pkl")
         self.external_data_list = self.read_all_pkl()
-        self.mpstruct_data = self.merge_with_mpstruct(self.external_data_list)
 
     def read_all_pkl(self):
         file_list = os.listdir("./Database/External/")
-        external_data_list=[]
+        external_data_list = []
         for file_name in file_list:
             external_data_list.append({
                 "name": file_name.split('.')[0],
                 "data": pd.read_pickle(
-                            './Database/External/{}'.format(file_name)
-                        )
+                    './Database/External/{}'.format(file_name)
+                )
             })
 
         return external_data_list
-    
-    ## Function takes in the "original Data" and merges is on the pdbCode with the data from the pdb database.
-    def merge_with_mpstruct(self, external_data_list):
-        mpstruct_data = pd.DataFrame({
-                            'pdb_code': self.tabular_data.pdb_code.unique()
-                        })
 
-        for field in external_data_list[:5]:
-            mpstruct_data = mpstruct_data.merge(
-                                field.get('data'),
-                                on=['pdb_code'],
-                                how='left',
-                            )
-        return mpstruct_data
+    # Function takes in the "original Data" and merges is on the pdbCode with the data from the pdb database.
+    # def merge_with_mpstruct(self, external_data_list):
+    #     mpstruct_data = pd.DataFrame({
+    #                         'pdb_code': self.tabular_data.pdb_code.unique()
+    #                     })
 
-
-db = Database()
-tabular_data = polish_db(get_dataframe(db))
-database = MasterDatabase(tabular_data)
-print(database.mpstruct_data.head())
+    #     for field in external_data_list[:5]:
+    #         mpstruct_data = mpstruct_data.merge(
+    #                             field.get('data'),
+    #                             on=['pdb_code'],
+    #                             how='left',
+    #                         )
+    #     return mpstruct_data
 
     ### define variables describing the tabular data (descriptive stats) ###
     # def no_of_entries(self) -> int:
@@ -59,12 +53,11 @@ print(database.mpstruct_data.head())
 
     # def db_types_len(self) -> int:
     #     print("neuer Name!! - check mit Quang.")
-    #     return len(list(self.tabular_data['#'].unique()))    
+    #     return len(list(self.tabular_data['#'].unique()))
 
     # def db_types_as_str(self) -> str:
     #     print("neuer Name!! - check mit Quang.")
     #     return ', '.join(list(self.tabular_data['#'].unique())).lower()
-
 
     # def resolution_mean_over_time(self):
     #     return self.tabular_data[['db_type', 'resolution', 'year']].groupby(['year'], as_index = False).mean()
@@ -72,8 +65,6 @@ print(database.mpstruct_data.head())
     # def db_type_reso(self):
     #     return self.tabular_data[['db_type', 'resolution']].groupby(['db_type'], as_index = False).mean()
 
-    
-    
     # no_of_monotopic_proteins = protein_db[protein_db['db_type'] == 'MONOTOPIC MEMBRANE PROTEINS'].shape[0]
     # mono_prot_ratio = round((no_of_monotopic_proteins / no_of_entries) * 100,2)
 
@@ -81,7 +72,7 @@ print(database.mpstruct_data.head())
     # alpha_prot_ratio = round((no_of_alpha_proteins / no_of_entries) * 100,2)
 
     # no_of_beta_proteins = protein_db[protein_db['db_type'] == 'TRANSMEMBRANE PROTEINS: BETA-BARREL'].shape[0]
-    # beta_prot_ratio = 
+    # beta_prot_ratio =
 
     # def no_of_proteins_per_cat(self, cat):
     #     print("neuer Name - check mit Quang.")

@@ -1,5 +1,6 @@
 {
     "python.dataScience.jupyterServerURI": "local",
     "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "python.pythonPath": "virtualenv\\Scripts\\python.exe"
 }
