@@ -191,12 +191,6 @@ def data_update(new_timestamp):
         # do the update ... get all the data and rebuild all the enrichtment databases
         persist_mpstruc()
 
-    else:
-        # do nothing, just get the old database
-        break
-
-    timestamp_file.close()
-
 
 def get_timestamp():
     import xml.etree.ElementTree as etree

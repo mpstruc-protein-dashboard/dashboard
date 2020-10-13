@@ -7,6 +7,6 @@ def category_selection(overview):
     cat_selector = \
         pn.widgets.Select(name="Category",
                           options=list(overview_only_cats.name),
-                          value=[])
+                          value='')
 
     return cat_selector

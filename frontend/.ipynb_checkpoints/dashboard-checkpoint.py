@@ -7,10 +7,9 @@ from frontend_elements import (
     variables_of_interest_picker
 )
 
-from src.database import MasterDatabase
+from . import MasterDatabase
 
 # the masterdata object holds every possible column
 # caution: there is no "one single huge" merged table
 # as this is not feasible.
 masterData = MasterDatabase()
-print(masterData)
