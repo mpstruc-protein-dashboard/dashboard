@@ -12,20 +12,20 @@ class MasterDatabase:
         # self.data = external_data # external data
         # get tabular data from xml file.
         self.tabular_data = pd.read_pickle("./Database/mpstruc_pandas.pkl")
-        self.external_data_list = self.read_all_pkl()
+        self.external_data_dict = self.read_all_pkl()
 
     def read_all_pkl(self):
         file_list = os.listdir("./Database/External/")
-        external_data_list = []
+        external_data_dict = {}
         for file_name in file_list:
-            external_data_list.append({
-                "name": file_name.split('.')[0],
+            without_pkl = file_name.split('.')[0]
+            external_data_dict[without_pkl] = {
+                "name": without_pkl,
                 "data": pd.read_pickle(
                     './Database/External/{}'.format(file_name)
                 )
-            })
-
-        return external_data_list
+            }
+        return external_data_dict
 
     # Function takes in the "original Data" and merges is on the pdbCode with the data from the pdb database.
     # def merge_with_mpstruct(self, external_data_list):
@@ -81,3 +81,9 @@ class MasterDatabase:
     # def ratio_of_proteins_per_cat(self, cat):
     #     print("neuer Name - check mit Quang.")
     #     return round((no_of_proteins_per_cat(self,cat) / self.no_of_entries()) * 100,2)
+
+
+db = MasterDatabase()
+
+
+test = ['ABCDR']

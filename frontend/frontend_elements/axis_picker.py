@@ -7,7 +7,14 @@ import panel as pn
 # element.
 def axis_selector(axis_name, multi_select_value):
     axis_picker = \
-        pn.widgets.Select(name='{}-Axis'.format(axis_name),
-                          options=multi_select_value,
-                          value="")
+        pn.Row(
+            pn.widgets.Select(name='{}-Axis'.format(axis_name),
+                              options=multi_select_value,
+                              value=''),
+            pn.widgets.Select(name='Type',
+                              options=['ordinal',
+                                       'nominal',
+                                       'numeric'],
+                              value='nominal')
+        )
     return axis_picker
