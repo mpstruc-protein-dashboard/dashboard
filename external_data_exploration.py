@@ -342,3 +342,4 @@ def subset_useable_data():
 
 
 res = subset_useable_data()
+pd.to_pickle('Database/full_prototypeDB.pkl', obj=res[0])
