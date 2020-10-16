@@ -1,28 +1,31 @@
 import pandas as pd
 import os
+import re
 
 
 def external_data_file_overview():
     files_in_external = os.listdir("Database/External/")
 
     overview = []
-    all_ext = []
 
-    for i, f in zip(range(len(files_in_external)), files_in_external):
+    for f in files_in_external:
         cur_db = pd.read_pickle("Database/External/{0}".format(f))
         overview.append(
             pd.DataFrame(
                 {"file_name": f,
-                 "name": f.rstrip(".pkl"),
+                 "name": re.sub('.pkl', '', f),
                  "nrow": cur_db.shape[0],
-                 "col_names": [(", ".join(map(str, list(cur_db.columns[1::]))))]
+                 "col_names": [", ".join(map(str, list(cur_db.columns[1::])))]
                  }
             )
         )
-        all_ext.append({"field": f, "data": cur_db})
+        print(f, cur_db)
 
     overview = pd.concat(overview)
     overview.reset_index(inplace=True, drop=True)
+
+# -TODO: this is not automated at all but should be.
+
     overview["data_type"] = None
     overview["note"] = None
 
@@ -214,3 +217,128 @@ def external_data_file_overview():
 
     overview = create_frontend_names(overview)
     return overview
+
+
+def subset_useable_data():
+    # not useable:
+
+    # abstractTextShort.pkl
+    # additionalMap.pkl
+
+    # # maybe useable
+    # authorAssignedEntityName.pkl
+    # citationAuthor.pkl
+    # clusterNumber100.pkl
+    # clusterNumber30.pkl
+    # clusterNumber40.pkl
+    # clusterNumber50.pkl
+    # clusterNumber70.pkl
+    # clusterNumber90.pkl
+    # clusterNumber95.pkl
+    # compound.pkl
+    # device.pkl
+    # diffractionSource.pkl
+    # entityMacromoleculeType.pkl
+    # ligandMolecularWeight.pkl # but 9000 samples..
+
+    useable = \
+        ["aggregationState.pkl",
+         "atomSiteCount.pkl",
+         "averageBFactor.pkl",
+         "chainLength.pkl",
+         "classification.pkl",
+         "collectionTemperature.pkl",
+         "crystallizationMethod.pkl",
+         "crystallizationTempK.pkl",
+         "db_name.pkl",
+         "densityMatthews.pkl",
+         "densityPercentSol.pkl",
+         "emResolution.pkl",
+         "experimentalTechnique.pkl",
+         "expressionHost.pkl",
+         "highResolutionLimit.pkl",
+         "journalName.pkl",
+         # "firstPage.pkl", # broken
+         # "lastPage.pkl", # broken
+         "lengthOfUnitCellLatticeA.pkl",
+         "lengthOfUnitCellLatticeB.pkl",
+         "lengthOfUnitCellLatticeC.pkl",
+         "macromoleculeType.pkl",
+         "molecularWeight.pkl",
+         "pdbDoi.pkl",
+         "phValue.pkl",
+         # "publicationYear.pkl", # broken
+         # "pubmedId.pkl", # broken
+         "rankNumber100.pkl",
+         "rankNumber30.pkl",
+         "rankNumber40.pkl",
+         "rankNumber50.pkl",
+         "rankNumber70.pkl",
+         "rankNumber90.pkl",
+         "rankNumber95.pkl",
+         "clusterNumber100.pkl",
+         "clusterNumber30.pkl",
+         "clusterNumber40.pkl",  # 1000 - A B C D E ... all the same
+         "clusterNumber50.pkl",
+         "clusterNumber70.pkl",
+         "clusterNumber90.pkl",
+         "clusterNumber95.pkl",
+         "reconstructionMethod.pkl",
+         "refinementResolution.pkl",
+         "reflectionsForRefinement.pkl",  # 5000 - A B C D E - each have diff value
+         "releaseDate.pkl",
+         "residueCount.pkl",
+         "resolution.pkl",
+         "revisionDate.pkl",
+         "rFree.pkl",
+         "rObserved.pkl",
+         "rWork.pkl",
+         "sequence.pkl",
+         "source.pkl",
+         "structureAuthor.pkl",
+         "structureDeterminationMethod.pkl",
+         "structureMolecularWeight.pkl",
+         "structureTitle.pkl",
+         "taxonomy.pkl",
+         # "title.pkl", #title
+         "unitCellAngleAlpha.pkl",
+         "unitCellAngleBeta.pkl",
+         "unitCellAngleGamma.pkl",
+         "vitrification.pkl"]
+
+    overview = []
+    init_db = pd.read_pickle("Database/External/{0}".format("chainLength.pkl"))
+    full_table = init_db.drop(columns='chainLength', axis=1)
+    merge_process = {}
+    for f in useable:
+        cur_db = pd.read_pickle("Database/External/{0}".format(f))
+        overview.append(
+            pd.DataFrame(
+                {"file_name": f,
+                 "name": re.sub('.pkl', '', f),
+                 "nrow": cur_db.shape[0],
+                 "col_names": [", ".join(map(str, list(cur_db.columns[1::])))]
+                 }
+            )
+        )
+        if 'chainId' in list(cur_db.columns):
+            full_table = full_table.merge(cur_db, on=['pdb_code', 'chainId'])
+        else:
+            full_table = full_table.merge(cur_db, on=['pdb_code'])
+            nrow = full_table.shape[0]
+        merge_process[f] = {"new_col": f, 'nrow': nrow}
+
+    overview = pd.concat(overview)
+    overview.reset_index(inplace=True, drop=True)
+
+    # def create_frontend_names(overview):
+    #     overview["frontend_names"] = None
+    #     for row in range(overview.shape[0]):
+    #         overview["frontend_names"][row] = overview.col_names[row] \
+    #             + " (" + overview.data_type[row] + ")"
+    #     return overview
+    # overview = create_frontend_names(overview)
+    return [full_table, overview, merge_process]
+
+
+res = subset_useable_data()
